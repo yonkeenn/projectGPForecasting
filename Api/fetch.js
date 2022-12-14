@@ -1,41 +1,82 @@
 import fetch from 'node-fetch';
 import fs from "fs";
+// import express, { application } from 'express';
+import pg from 'pg';
 
-// api url
-const api_url = "https://api.zippopotam.us/us/33162";
+// Database connection
+
+const client =  new pg.Client({
+   user: 'yon',
+   host: 'localhost',
+   database: 'test',
+   password: 'rodrigo',
+   port: 5432
+});
+
+
+client.connect();
+
+const text = 'INSERT INTO sales(id, item) VALUES($1, $2) RETURNING *';
+const values = ['1', 'brian'];
+ 
+// callback
+client.query(text, values, (err, res) => {
+  if (err) {
+    console.log(err.stack)
+  } else {
+    console.log(res.rows[0])
+    // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
+  }
+})
+
+
+// await client.end();
+
+// API information
+
+const api_url = "https://api2.binance.com/api/v3/ticker/24hr";
   
-const database = [];
-
-// Defining async function
 async function getapi(url) {
     
     // Storing response
     const response = await fetch(url);
-    
-    // Storing data in form of JSON
     const data = await response.json();
+    //const jdata = JSON.stringify(data);
+    //console.log(data);
 
-    const jdata = JSON.stringify(data);
-    // database.push(data);
-    console.log(data);
+    //fs.writeFile("test.json", jdata, function(err) {
+    //if (err) {
+    //    console.log(err);
+    //}
+    //});
+    // client.connect();
 
-    fs.writeFile("test.json", jdata, function(err) {
-    if (err) {
-        console.log(err);
+
+
+
+    for( let i=0; i< data.length; i++){
+      console.log(data[i]['symbol']);
+
+      const text = 'INSERT INTO sales(id, item) VALUES($1, $2) RETURNING *';
+      const values = [i, data[i]['symbol']];
+
+      // callback
+      client.query(text, values, (err, res) => {
+        if (err) {
+          console.log(err.stack)
+        } else {
+          console.log(res.rows[0])
+          // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
+        }
+      })
+
     }
-    });
 }
 
-
-
-// Calling that async function
 getapi(api_url);
 
+// Server side
 
-
-fs.writeFile('helloworld.txt', 'Hello World!', function (err) {
-  if (err) return console.log(err);
-  console.log('Hello World > helloworld.txt');
-});
-
-console.log(database);
+// const app = express();
+// app.listen(3000, () => console.log('Listening at port: 3000'));
+// app.use(express.static('src'));
